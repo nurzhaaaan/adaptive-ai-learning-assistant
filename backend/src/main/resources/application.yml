@@ -1,0 +1,39 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:adaptive;MODE=PostgreSQL;DB_CLOSE_DELAY=-1}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+    open-in-view: false
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:true}
+
+app:
+
+  jwt:
+    secret: ${JWT_SECRET:change-this-to-a-long-random-secret-at-least-32-characters}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+  ai:
+    api-url: ${AI_API_URL:}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:}
+
+logging:
+
+  level:
+    org.springframework.security: INFO

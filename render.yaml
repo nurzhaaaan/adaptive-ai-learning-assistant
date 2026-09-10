@@ -1,0 +1,35 @@
+databases:
+  - name: adaptive-ai-db
+    databaseName: adaptive_learning
+    user: adaptive_user
+    plan: free
+
+services:
+  - type: web
+    name: adaptive-ai-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: adaptive-ai-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: adaptive-ai-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: adaptive-ai-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_API_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        sync: false

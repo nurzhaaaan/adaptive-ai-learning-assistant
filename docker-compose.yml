@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive_learning}
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-adaptive_user} -d ${POSTGRES_DB:-adaptive_learning}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-adaptive_learning}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-adaptive_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_password}
+      JWT_SECRET: ${JWT_SECRET:-change-this-to-a-long-random-secret-at-least-32-characters}
+      AI_API_URL: ${AI_API_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:
