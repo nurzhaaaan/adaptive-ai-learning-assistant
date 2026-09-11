@@ -1,5 +1,7 @@
 package kz.iitu.adaptivelearning.security;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,8 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -48,34 +48,57 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // CORS preflight
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll()
 
-                        // Authentication
+                        /*
+                         * Public authentication endpoints
+                         */
                         .requestMatchers(
                                 "/api/auth/**"
                         ).permitAll()
 
-                        // Health check
+                        /*
+                         * Health check
+                         */
                         .requestMatchers(
                                 "/api/health/**",
                                 "/health"
                         ).permitAll()
 
-                        // Diagnostic
+                        /*
+                         * ADMIN only
+                         */
                         .requestMatchers(
-                                "/api/diagnostic/**"
-                        ).permitAll()
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
 
-                        // H2 console - local development
+                        /*
+                         * H2 local development
+                         */
                         .requestMatchers(
                                 "/h2-console/**"
                         ).permitAll()
 
-                        // Everything else
+                        /*
+                         * All learning functionality requires login.
+                         * Both STUDENT and ADMIN can access these.
+                         */
+                        .requestMatchers(
+                                "/api/courses/**",
+                                "/api/quizzes/**",
+                                "/api/diagnostic/**",
+                                "/api/ai/**"
+                        ).hasAnyRole(
+                                "STUDENT",
+                                "ADMIN"
+                        )
+
+                        /*
+                         * Everything else also requires login
+                         */
                         .anyRequest()
                         .authenticated()
                 )
@@ -94,49 +117,31 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /*
-     * Password encoder used by:
-     * - registration
-     * - login
-     * - demo user seeding
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /*
-     * Authentication manager
-     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration
     ) throws Exception {
 
-        return configuration.getAuthenticationManager();
+        return configuration
+                .getAuthenticationManager();
     }
 
-    /*
-     * CORS configuration
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        /*
-         * Local development + Production Vercel
-         */
         configuration.setAllowedOriginPatterns(
                 List.of(
                         "http://localhost:5173",
                         "http://127.0.0.1:5173",
-
-                        // Main production frontend
                         "https://adaptive-ai-learning-assistant.vercel.app",
-
-                        // Vercel preview deployments
                         "https://*.vercel.app"
                 )
         );
@@ -170,7 +175,6 @@ public class SecurityConfig {
         );
 
         configuration.setAllowCredentials(true);
-
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
