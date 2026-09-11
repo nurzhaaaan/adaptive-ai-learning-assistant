@@ -5,35 +5,46 @@ const API_URL =
 /**
  * Main API helper
  *
- * Usage:
+ * Public endpoint:
  * api("/auth/login", {
  *   method: "POST",
  *   body: JSON.stringify({...})
  * })
  *
- * api("/courses", {}, token)
+ * Protected endpoint:
+ * api("/courses")
+ *
+ * Token localStorage-тан автоматты түрде алынады.
  */
 export async function api(
   path,
   options = {},
-  token = null
+  providedToken = null
 ) {
+  const storedToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token")
+      : null;
+
+  const token = providedToken || storedToken;
+
+  const headers = {
+    "Content-Type": "application/json",
+
+    ...(token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {}),
+
+    ...(options.headers || {}),
+  };
+
   const response = await fetch(
     `${API_URL}${path}`,
     {
       ...options,
-
-      headers: {
-        "Content-Type": "application/json",
-
-        ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {}),
-
-        ...(options.headers || {}),
-      },
+      headers,
     }
   );
 
@@ -43,7 +54,9 @@ export async function api(
     response.headers.get("content-type") || "";
 
   try {
-    if (contentType.includes("application/json")) {
+    if (
+      contentType.includes("application/json")
+    ) {
       data = await response.json();
     } else {
       const text = await response.text();
@@ -53,8 +66,31 @@ export async function api(
     data = null;
   }
 
+  if (
+    response.status === 401 ||
+    response.status === 403
+  ) {
+    /*
+     * Егер protected request token проблемасымен
+     * құласа, stale session-ды тазалаймыз.
+     *
+     * Auth login/register endpoint-терінде token
+     * болмауы қалыпты.
+     */
+    const isAuthEndpoint =
+      path.startsWith("/auth/");
+
+    if (!isAuthEndpoint) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
+  }
+
   if (!response.ok) {
-    let message = `Request failed: ${response.status}`;
+    let message =
+      `Request failed: ${response.status}`;
 
     if (
       data &&
@@ -66,7 +102,10 @@ export async function api(
         message;
     }
 
-    if (typeof data === "string" && data.trim()) {
+    if (
+      typeof data === "string" &&
+      data.trim()
+    ) {
       message = data;
     }
 
@@ -78,9 +117,6 @@ export async function api(
 
 /**
  * Alias.
- *
- * apiRequest және api екеуін де
- * қолдануға болады.
  */
 export const apiRequest = api;
 
