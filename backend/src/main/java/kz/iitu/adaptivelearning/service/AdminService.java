@@ -28,7 +28,6 @@ public class AdminService {
     }
 
     public AdminSummary getSummary() {
-
         return new AdminSummary(
                 users.count(),
                 users.countByRole(Role.STUDENT),
@@ -38,18 +37,14 @@ public class AdminService {
     }
 
     public List<UserView> getStudents() {
-
         return users
-                .findAllByRoleOrderByCreatedAtDesc(
-                        Role.STUDENT
-                )
+                .findAllByRoleOrderByCreatedAtDesc(Role.STUDENT)
                 .stream()
                 .map(this::toView)
                 .toList();
     }
 
     public List<UserView> getAllUsers() {
-
         return users
                 .findAllByOrderByCreatedAtDesc()
                 .stream()
@@ -58,10 +53,10 @@ public class AdminService {
     }
 
     private UserView toView(User user) {
-
         return new UserView(
                 user.getId(),
                 user.getName(),
+                user.getUsername(),
                 user.getEmail(),
                 user.getRole().name(),
                 user.getCreatedAt()

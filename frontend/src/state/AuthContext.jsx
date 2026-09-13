@@ -5,130 +5,108 @@ import React, {
   useState
 } from 'react';
 
-import {
-  api
-} from '../api';
+import { api } from '../api';
 
-const C =
-  createContext(null);
+const AuthContext = createContext(null);
 
-export function AuthProvider({
-  children
-}) {
+export function AuthProvider({ children }) {
 
-  const [user, setUser] =
-    useState(() => {
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem('user')
+      );
+    } catch {
+      return null;
+    }
+  });
 
-      try {
+  function saveAuth(data) {
 
-        return JSON.parse(
-          localStorage.getItem(
-            'user'
-          )
-        );
+    localStorage.setItem(
+      'token',
+      data.token
+    );
 
-      } catch {
+    localStorage.setItem(
+      'user',
+      JSON.stringify(data)
+    );
 
-        return null;
-      }
-    });
+    setUser(data);
+  }
 
   async function login(
     identifier,
     password
   ) {
 
-    const data =
-      await api(
-        '/auth/login',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            identifier,
-            password
-          })
-        }
-      );
-
-    localStorage.setItem(
-      'token',
-      data.token
+    const data = await api(
+      '/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          identifier,
+          password
+        })
+      }
     );
 
-    localStorage.setItem(
-      'user',
-      JSON.stringify(data)
-    );
-
-    setUser(data);
+    saveAuth(data);
 
     return data;
   }
 
   async function register(
     name,
+    username,
     email,
     password
   ) {
 
-    const data =
-      await api(
-        '/auth/register',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            name,
-            email,
-            password
-          })
-        }
-      );
-
-    localStorage.setItem(
-      'token',
-      data.token
+    const data = await api(
+      '/auth/register',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          username,
+          email,
+          password
+        })
+      }
     );
 
-    localStorage.setItem(
-      'user',
-      JSON.stringify(data)
-    );
-
-    setUser(data);
+    saveAuth(data);
 
     return data;
   }
 
   function logout() {
 
-    localStorage.removeItem(
-      'token'
-    );
-
-    localStorage.removeItem(
-      'user'
-    );
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
 
     setUser(null);
   }
 
-  const value =
-    useMemo(
-      () => ({
-        user,
-        login,
-        register,
-        logout
-      }),
-      [user]
-    );
+  const value = useMemo(
+    () => ({
+      user,
+      login,
+      register,
+      logout
+    }),
+    [user]
+  );
 
   return (
-    <C.Provider value={value}>
+    <AuthContext.Provider value={value}>
       {children}
-    </C.Provider>
+    </AuthContext.Provider>
   );
 }
 
-export const useAuth =
-  () => useContext(C);
+export function useAuth() {
+  return useContext(AuthContext);
+}

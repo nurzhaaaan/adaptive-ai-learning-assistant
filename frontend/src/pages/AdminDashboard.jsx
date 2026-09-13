@@ -1,43 +1,76 @@
-import React, { useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState
+} from 'react';
+
 import {
   Users,
+  UserRound,
   ShieldCheck,
   BookOpen,
-  UserRound,
-  RefreshCcw
+  RefreshCw
 } from 'lucide-react';
+
 import { api } from '../api';
 
 export default function AdminDashboard() {
-  const [summary, setSummary] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  async function loadData() {
-    try {
+  const [summary, setSummary] =
+    useState(null);
+
+  const [students, setStudents] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState('');
+
+  const load = useCallback(
+    async () => {
+
       setLoading(true);
       setError('');
 
-      const [summaryData, studentsData] = await Promise.all([
-        api('/admin/summary'),
-        api('/admin/students')
-      ]);
+      try {
 
-      setSummary(summaryData);
-      setStudents(studentsData);
-    } catch (err) {
-      setError(err?.message || 'Admin data жүктелмеді.');
-    } finally {
-      setLoading(false);
-    }
-  }
+        const [
+          summaryData,
+          studentsData
+        ] = await Promise.all([
+          api('/admin/summary'),
+          api('/admin/students')
+        ]);
+
+        setSummary(summaryData);
+        setStudents(studentsData);
+
+      } catch (err) {
+
+        setError(
+          err?.message ||
+          'Admin деректерін жүктеу мүмкін болмады.'
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    loadData();
-  }, []);
+    load();
+  }, [load]);
 
-  if (loading) {
+  if (
+    loading &&
+    !summary
+  ) {
+
     return (
       <div className="loader">
         Admin Dashboard жүктелуде...
@@ -48,8 +81,10 @@ export default function AdminDashboard() {
   return (
     <div className="admin-dashboard-page">
 
-      <header className="page-head admin-page-head">
+      <header className="admin-page-head">
+
         <div>
+
           <span className="eyebrow">
             ADMINISTRATION
           </span>
@@ -59,21 +94,33 @@ export default function AdminDashboard() {
           </h1>
 
           <p>
-            Adaptive AI платформасын және студенттерді басқару.
+            Adaptive AI платформасын және
+            студенттерді басқару.
           </p>
+
         </div>
 
         <button
           className="admin-refresh-btn"
-          onClick={loadData}
+          onClick={load}
+          disabled={loading}
         >
-          <RefreshCcw size={17} />
+          <RefreshCw
+            size={18}
+            className={
+              loading
+                ? 'spin'
+                : ''
+            }
+          />
+
           Жаңарту
         </button>
+
       </header>
 
       {error && (
-        <div className="alert error">
+        <div className="admin-empty">
           {error}
         </div>
       )}
@@ -81,27 +128,35 @@ export default function AdminDashboard() {
       <section className="admin-stat-grid">
 
         <StatCard
-          icon={<Users />}
+          icon={<Users/>}
           label="Барлық қолданушы"
-          value={summary?.totalUsers ?? 0}
+          value={
+            summary?.totalUsers ?? 0
+          }
         />
 
         <StatCard
-          icon={<UserRound />}
+          icon={<UserRound/>}
           label="Студенттер"
-          value={summary?.totalStudents ?? 0}
+          value={
+            summary?.totalStudents ?? 0
+          }
         />
 
         <StatCard
-          icon={<ShieldCheck />}
+          icon={<ShieldCheck/>}
           label="Админдер"
-          value={summary?.totalAdmins ?? 0}
+          value={
+            summary?.totalAdmins ?? 0
+          }
         />
 
         <StatCard
-          icon={<BookOpen />}
+          icon={<BookOpen/>}
           label="Пәндер"
-          value={summary?.totalCourses ?? 0}
+          value={
+            summary?.totalCourses ?? 0
+          }
         />
 
       </section>
@@ -109,79 +164,113 @@ export default function AdminDashboard() {
       <section className="admin-panel">
 
         <div className="admin-panel-head">
+
           <div>
-            <h2>
-              Студенттер
-            </h2>
+            <h2>Студенттер</h2>
 
             <p>
-              Платформада тіркелген студенттер тізімі.
+              Платформада тіркелген
+              студенттер тізімі.
             </p>
           </div>
 
           <span className="admin-count">
             {students.length}
           </span>
+
         </div>
 
         {students.length === 0 ? (
+
           <div className="admin-empty">
-            Әзірге студент жоқ.
+            Әзірге студент тіркелмеген.
           </div>
+
         ) : (
+
           <div className="admin-table-wrap">
 
             <table className="admin-table">
+
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Аты</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Тіркелген күні</th>
+                  <th>АТЫ</th>
+                  <th>LOGIN</th>
+                  <th>EMAIL</th>
+                  <th>ROLE</th>
+                  <th>ТІРКЕЛГЕН КҮНІ</th>
                 </tr>
               </thead>
 
               <tbody>
-                {students.map(student => (
-                  <tr key={student.id}>
 
-                    <td>
-                      #{student.id}
-                    </td>
+                {students.map(
+                  student => (
 
-                    <td>
-                      <div className="admin-user-cell">
-                        <span className="admin-user-avatar">
-                          {student.name?.[0]?.toUpperCase() || 'S'}
+                    <tr key={student.id}>
+
+                      <td>
+                        #{student.id}
+                      </td>
+
+                      <td>
+
+                        <div className="admin-user-cell">
+
+                          <span className="admin-user-avatar">
+                            {
+                              student
+                                .name
+                                ?.charAt(0)
+                                ?.toUpperCase() ||
+                              'S'
+                            }
+                          </span>
+
+                          <strong>
+                            {student.name}
+                          </strong>
+
+                        </div>
+
+                      </td>
+
+                      <td>
+                        <strong>
+                          {student.username || '—'}
+                        </strong>
+                      </td>
+
+                      <td>
+                        {student.email}
+                      </td>
+
+                      <td>
+
+                        <span className="student-role-badge">
+                          {student.role}
                         </span>
 
-                        <strong>
-                          {student.name}
-                        </strong>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td>
-                      {student.email}
-                    </td>
+                      <td>
+                        {formatDate(
+                          student.createdAt
+                        )}
+                      </td>
 
-                    <td>
-                      <span className="student-role-badge">
-                        {student.role}
-                      </span>
-                    </td>
+                    </tr>
 
-                    <td>
-                      {formatDate(student.createdAt)}
-                    </td>
+                  )
+                )}
 
-                  </tr>
-                ))}
               </tbody>
+
             </table>
 
           </div>
+
         )}
 
       </section>
@@ -195,14 +284,16 @@ function StatCard({
   label,
   value
 }) {
+
   return (
-    <div className="admin-stat-card">
+    <article className="admin-stat-card">
 
       <div className="admin-stat-icon">
         {icon}
       </div>
 
       <div>
+
         <span>
           {label}
         </span>
@@ -210,27 +301,33 @@ function StatCard({
         <strong>
           {value}
         </strong>
+
       </div>
 
-    </div>
+    </article>
   );
 }
 
 function formatDate(value) {
+
   if (!value) {
     return '—';
   }
 
   try {
-    return new Date(value).toLocaleDateString(
-      'kk-KZ',
-      {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }
-    );
+
+    return new Date(value)
+      .toLocaleDateString(
+        'kk-KZ',
+        {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }
+      );
+
   } catch {
+
     return value;
   }
 }
