@@ -1,30 +1,33 @@
 import React from 'react';
+
 import {
   Navigate,
   Route,
   Routes
 } from 'react-router-dom';
 
-import {
-  useAuth
-} from './state/AuthContext';
+import { useAuth } from './state/AuthContext';
 
 import Layout from './components/Layout';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
+
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+
 import Courses from './pages/Courses';
 import CourseDetails from './pages/CourseDetails';
+
 import Quiz from './pages/Quiz';
+import Diagnostic from './pages/Diagnostic';
 import Analytics from './pages/Analytics';
 import AiTutor from './pages/AiTutor';
-import Diagnostic from './pages/Diagnostic';
-import AdminDashboard from './pages/AdminDashboard';
+
+import Schedule from './pages/Schedule';
 
 import {
   StudyPlan,
-  Schedule,
   Assignments,
   Testing,
   Grades,
@@ -43,21 +46,24 @@ import {
 function Private({
   children
 }) {
-  const {
-    user
-  } = useAuth();
+
+  const { user } = useAuth();
 
   return user
     ? children
-    : <Navigate to="/login" replace />;
+    : (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
 }
 
 function AdminOnly({
   children
 }) {
-  const {
-    user
-  } = useAuth();
+
+  const { user } = useAuth();
 
   if (!user) {
     return (
@@ -80,12 +86,13 @@ function AdminOnly({
   return children;
 }
 
-function StudentHome() {
-  const {
-    user
-  } = useAuth();
+function Home() {
 
-  if (user?.role === 'ADMIN') {
+  const { user } = useAuth();
+
+  if (
+    user?.role === 'ADMIN'
+  ) {
     return (
       <Navigate
         to="/admin"
@@ -94,7 +101,7 @@ function StudentHome() {
     );
   }
 
-  return <Dashboard />;
+  return <Dashboard/>;
 }
 
 export default function App() {
@@ -104,140 +111,140 @@ export default function App() {
 
       <Route
         path="/login"
-        element={<Login />}
+        element={<Login/>}
       />
 
       <Route
         path="/register"
-        element={<Register />}
+        element={<Register/>}
       />
 
       <Route
         path="/"
         element={
           <Private>
-            <Layout />
+            <Layout/>
           </Private>
         }
       >
 
         <Route
           index
-          element={<StudentHome />}
+          element={<Home/>}
         />
 
         <Route
           path="admin"
           element={
             <AdminOnly>
-              <AdminDashboard />
+              <AdminDashboard/>
             </AdminOnly>
           }
         />
 
         <Route
           path="study-plan"
-          element={<StudyPlan />}
+          element={<StudyPlan/>}
         />
 
         <Route
           path="schedule"
-          element={<Schedule />}
+          element={<Schedule/>}
         />
 
         <Route
           path="courses"
-          element={<Courses />}
+          element={<Courses/>}
         />
 
         <Route
           path="courses/:id"
-          element={<CourseDetails />}
+          element={<CourseDetails/>}
         />
 
         <Route
           path="assignments"
-          element={<Assignments />}
+          element={<Assignments/>}
         />
 
         <Route
           path="testing"
-          element={<Testing />}
+          element={<Testing/>}
         />
 
         <Route
           path="grades"
-          element={<Grades />}
+          element={<Grades/>}
         />
 
         <Route
           path="quiz/:topicId"
-          element={<Quiz />}
+          element={<Quiz/>}
         />
 
         <Route
           path="diagnostic/:courseId"
-          element={<Diagnostic />}
+          element={<Diagnostic/>}
         />
 
         <Route
           path="analytics"
-          element={<Analytics />}
+          element={<Analytics/>}
         />
 
         <Route
           path="academic-calendar"
-          element={<AcademicCalendar />}
+          element={<AcademicCalendar/>}
         />
 
         <Route
           path="journal"
-          element={<Journal />}
+          element={<Journal/>}
         />
 
         <Route
           path="applications"
-          element={<Applications />}
+          element={<Applications/>}
         />
 
         <Route
           path="materials"
-          element={<Materials />}
+          element={<Materials/>}
         />
 
         <Route
           path="transcript"
-          element={<Transcript />}
+          element={<Transcript/>}
         />
 
         <Route
           path="appeals"
-          element={<Appeals />}
+          element={<Appeals/>}
         />
 
         <Route
           path="ai"
-          element={<AiTutor />}
+          element={<AiTutor/>}
         />
 
         <Route
           path="messages"
-          element={<Messages />}
+          element={<Messages/>}
         />
 
         <Route
           path="profile"
-          element={<Profile />}
+          element={<Profile/>}
         />
 
         <Route
           path="settings"
-          element={<SettingsPage />}
+          element={<SettingsPage/>}
         />
 
         <Route
           path="support"
-          element={<Support />}
+          element={<Support/>}
         />
 
       </Route>
