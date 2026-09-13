@@ -5,11 +5,16 @@ import React, {
 } from 'react';
 
 import {
+  Link
+} from 'react-router-dom';
+
+import {
   Users,
   UserRound,
   ShieldCheck,
   BookOpen,
-  RefreshCw
+  RefreshCw,
+  ArrowRight
 } from 'lucide-react';
 
 import { api } from '../api';
@@ -28,39 +33,46 @@ export default function AdminDashboard() {
   const [error, setError] =
     useState('');
 
-  const load = useCallback(
-    async () => {
+  const load =
+    useCallback(
+      async () => {
 
-      setLoading(true);
-      setError('');
+        setLoading(true);
+        setError('');
 
-      try {
+        try {
 
-        const [
-          summaryData,
-          studentsData
-        ] = await Promise.all([
-          api('/admin/summary'),
-          api('/admin/students')
-        ]);
+          const [
+            summaryData,
+            studentsData
+          ] =
+            await Promise.all([
+              api('/admin/summary'),
+              api('/admin/students')
+            ]);
 
-        setSummary(summaryData);
-        setStudents(studentsData);
+          setSummary(
+            summaryData
+          );
 
-      } catch (err) {
+          setStudents(
+            studentsData
+          );
 
-        setError(
-          err?.message ||
-          'Admin деректерін жүктеу мүмкін болмады.'
-        );
+        } catch (err) {
 
-      } finally {
+          setError(
+            err?.message ||
+            'Admin деректерін жүктеу мүмкін болмады.'
+          );
 
-        setLoading(false);
-      }
-    },
-    []
-  );
+        } finally {
+
+          setLoading(false);
+        }
+      },
+      []
+    );
 
   useEffect(() => {
     load();
@@ -94,8 +106,9 @@ export default function AdminDashboard() {
           </h1>
 
           <p>
-            Adaptive AI платформасын және
-            студенттерді басқару.
+            Adaptive AI платформасын,
+            студенттерді және оқу
+            аналитикасын басқару.
           </p>
 
         </div>
@@ -105,15 +118,7 @@ export default function AdminDashboard() {
           onClick={load}
           disabled={loading}
         >
-          <RefreshCw
-            size={18}
-            className={
-              loading
-                ? 'spin'
-                : ''
-            }
-          />
-
+          <RefreshCw size={18}/>
           Жаңарту
         </button>
 
@@ -169,8 +174,8 @@ export default function AdminDashboard() {
             <h2>Студенттер</h2>
 
             <p>
-              Платформада тіркелген
-              студенттер тізімі.
+              Студентті басып,
+              оқу аналитикасын ашуға болады.
             </p>
           </div>
 
@@ -180,98 +185,136 @@ export default function AdminDashboard() {
 
         </div>
 
-        {students.length === 0 ? (
+        {students.length === 0
+          ? (
+            <div className="admin-empty">
+              Әзірге студент тіркелмеген.
+            </div>
+          )
+          : (
+            <div className="admin-table-wrap">
 
-          <div className="admin-empty">
-            Әзірге студент тіркелмеген.
-          </div>
+              <table className="admin-table">
 
-        ) : (
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>АТЫ</th>
+                    <th>LOGIN</th>
+                    <th>EMAIL</th>
+                    <th>ROLE</th>
+                    <th>ТІРКЕЛГЕН КҮНІ</th>
+                    <th></th>
+                  </tr>
+                </thead>
 
-          <div className="admin-table-wrap">
+                <tbody>
 
-            <table className="admin-table">
+                  {students.map(
+                    student => (
 
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>АТЫ</th>
-                  <th>LOGIN</th>
-                  <th>EMAIL</th>
-                  <th>ROLE</th>
-                  <th>ТІРКЕЛГЕН КҮНІ</th>
-                </tr>
-              </thead>
+                      <tr key={student.id}>
 
-              <tbody>
+                        <td>
+                          #{student.id}
+                        </td>
 
-                {students.map(
-                  student => (
+                        <td>
 
-                    <tr key={student.id}>
-
-                      <td>
-                        #{student.id}
-                      </td>
-
-                      <td>
-
-                        <div className="admin-user-cell">
-
-                          <span className="admin-user-avatar">
-                            {
-                              student
-                                .name
-                                ?.charAt(0)
-                                ?.toUpperCase() ||
-                              'S'
+                          <Link
+                            to={
+                              `/admin/students/${student.id}`
                             }
-                          </span>
+                            style={{
+                              textDecoration:
+                                'none'
+                            }}
+                          >
 
+                            <div className="admin-user-cell">
+
+                              <span className="admin-user-avatar">
+                                {
+                                  student
+                                    .name
+                                    ?.charAt(0)
+                                    ?.toUpperCase() ||
+                                  'S'
+                                }
+                              </span>
+
+                              <strong
+                                style={{
+                                  color:
+                                    '#1c64bd'
+                                }}
+                              >
+                                {student.name}
+                              </strong>
+
+                            </div>
+
+                          </Link>
+
+                        </td>
+
+                        <td>
                           <strong>
-                            {student.name}
+                            {
+                              student.username ||
+                              '—'
+                            }
                           </strong>
+                        </td>
 
-                        </div>
+                        <td>
+                          {student.email}
+                        </td>
 
-                      </td>
+                        <td>
+                          <span className="student-role-badge">
+                            {student.role}
+                          </span>
+                        </td>
 
-                      <td>
-                        <strong>
-                          {student.username || '—'}
-                        </strong>
-                      </td>
+                        <td>
+                          {
+                            formatDate(
+                              student.createdAt
+                            )
+                          }
+                        </td>
 
-                      <td>
-                        {student.email}
-                      </td>
+                        <td>
 
-                      <td>
+                          <Link
+                            to={
+                              `/admin/students/${student.id}`
+                            }
+                            title="Аналитиканы ашу"
+                            style={{
+                              color:
+                                '#2877db'
+                            }}
+                          >
+                            <ArrowRight
+                              size={19}
+                            />
+                          </Link>
 
-                        <span className="student-role-badge">
-                          {student.role}
-                        </span>
+                        </td>
 
-                      </td>
+                      </tr>
+                    )
+                  )}
 
-                      <td>
-                        {formatDate(
-                          student.createdAt
-                        )}
-                      </td>
+                </tbody>
 
-                    </tr>
+              </table>
 
-                  )
-                )}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        )}
+            </div>
+          )
+        }
 
       </section>
 

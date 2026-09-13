@@ -15,6 +15,7 @@ import Register from './pages/Register';
 
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminStudentDetails from './pages/AdminStudentDetails';
 
 import Courses from './pages/Courses';
 import CourseDetails from './pages/CourseDetails';
@@ -47,7 +48,8 @@ function Private({
   children
 }) {
 
-  const { user } = useAuth();
+  const { user } =
+    useAuth();
 
   return user
     ? children
@@ -63,9 +65,11 @@ function AdminOnly({
   children
 }) {
 
-  const { user } = useAuth();
+  const { user } =
+    useAuth();
 
   if (!user) {
+
     return (
       <Navigate
         to="/login"
@@ -74,7 +78,10 @@ function AdminOnly({
     );
   }
 
-  if (user.role !== 'ADMIN') {
+  if (
+    user.role !== 'ADMIN'
+  ) {
+
     return (
       <Navigate
         to="/"
@@ -88,11 +95,13 @@ function AdminOnly({
 
 function Home() {
 
-  const { user } = useAuth();
+  const { user } =
+    useAuth();
 
   if (
     user?.role === 'ADMIN'
   ) {
+
     return (
       <Navigate
         to="/admin"
@@ -138,6 +147,15 @@ export default function App() {
           element={
             <AdminOnly>
               <AdminDashboard/>
+            </AdminOnly>
+          }
+        />
+
+        <Route
+          path="admin/students/:id"
+          element={
+            <AdminOnly>
+              <AdminStudentDetails/>
             </AdminOnly>
           }
         />

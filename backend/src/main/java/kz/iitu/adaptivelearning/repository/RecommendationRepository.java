@@ -1,5 +1,22 @@
 package kz.iitu.adaptivelearning.repository;
-import kz.iitu.adaptivelearning.entity.Recommendation;
-import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
-public interface RecommendationRepository extends JpaRepository<Recommendation, Long> { List<Recommendation> findTop5ByUserIdOrderByCreatedAtDesc(Long userId); }
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import kz.iitu.adaptivelearning.entity.Recommendation;
+
+public interface RecommendationRepository
+        extends JpaRepository<Recommendation, Long> {
+
+    List<Recommendation>
+    findTop5ByUserIdOrderByCreatedAtDesc(
+            Long userId
+    );
+
+    Optional<Recommendation>
+    findTop1ByUserIdOrderByCreatedAtDesc(
+            Long userId
+    );
+}
