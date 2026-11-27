@@ -1,3 +1,4 @@
+import {useLanguage} from '../state/language';
 import React, { useEffect, useMemo, useState } from 'react';
 import { api } from '../api';
 import { Link } from 'react-router-dom';
@@ -10,6 +11,7 @@ const assignmentsSeed=[
 ];
 
 export function StudyPlan(){
+ const {t:tr}=useLanguage();
  const [courses,setCourses]=useState([]),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  const [selected,setSelected]=useState('all');
  useEffect(()=>{let active=true;api('/courses').then(list=>Promise.all(list.map(c=>api('/courses/'+c.id)))).then(data=>{if(active)setCourses(data)}).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
@@ -17,13 +19,13 @@ export function StudyPlan(){
  const rank=t=>t.status==='NOT_STARTED'?1:t.masteryScore<50?0:t.masteryScore<80?2:3;
  const plan=[...topics].sort((a,b)=>rank(a)-rank(b)||a.masteryScore-b.masteryScore||a.orderNumber-b.orderNumber);
  const assessed=topics.filter(t=>t.status!=='NOT_STARTED');
- const status=t=>t.status==='NOT_STARTED'?'Тексерілмеген':t.masteryScore<50?'Қайталау қажет':t.masteryScore<80?'Жаттығу қажет':'Меңгерілген';
- return <Page title="Жеке оқу жоспары" subtitle="Нақты тест нәтижелеріне негізделген білім картасы және келесі қадамдар.">
- {loading?<p role="status">Жүктелуде...</p>:error?<div role="alert">{error} <button onClick={()=>window.location.reload()}>Қайталау</button></div>:<>
- <label>Пән: <select value={selected} onChange={e=>setSelected(e.target.value)}><option value="all">Барлық пәндер</option>{courses.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label>
- <section className="stat-grid" style={{marginTop:16}}>{[['Тақырыптар',topics.length],['Бағаланған',assessed.length],['Қайталау қажет',assessed.filter(t=>t.masteryScore<50).length],['Орташа меңгеру',assessed.length?Math.round(assessed.reduce((s,t)=>s+t.masteryScore,0)/assessed.length)+'%':'—']].map(([label,value])=><div className="stat-card" key={label}><div><small>{label}</small><strong>{value}</strong></div></div>)}</section>
- <section className="card" style={{marginTop:16}}><h2>Knowledge Map</h2>{!topics.length&&<p>Тақырыптар әлі жоқ.</p>}<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,220px),1fr))',gap:12}}>{topics.map(t=><article key={t.id} style={{padding:16,border:'1px solid #dbe4e8',borderRadius:12}}><small>{t.courseTitle}</small><h3>{t.title}</h3><p>{status(t)} · {t.status==='NOT_STARTED'?'—':t.masteryScore+'%'}</p><progress aria-label={t.title} max="100" value={t.status==='NOT_STARTED'?0:t.masteryScore} style={{width:'100%'}}/><p><Link to={'/courses/'+t.courseId}>Материал</Link></p></article>)}</div></section>
- <section className="card" style={{marginTop:16}}><h2>Ұсынылатын оқу реті</h2><p>Алдымен әлсіз тақырыптар, кейін тексерілмеген тақырыптар және жаттығулар.</p><ol>{plan.map(t=><li key={t.id} style={{marginBottom:16}}><strong>{t.title}</strong> — {status(t)} <small>({t.difficulty})</small><div><Link to={'/courses/'+t.courseId}>Оқу</Link>{' · '}<Link to={t.status==='NOT_STARTED'?'/diagnostic/'+t.courseId:'/quiz/'+t.id}>{t.status==='NOT_STARTED'?'Диагностика':'Тест'}</Link></div></li>)}</ol></section>
+ const status=t=>t.status==='NOT_STARTED'?tr("Тексерілмеген"):t.masteryScore<50?tr("Қайталау қажет"):t.masteryScore<80?tr("Жаттығу қажет"):tr("Меңгерілген");
+ return <Page title={tr("Жеке оқу жоспары")} subtitle={tr("Нақты тест нәтижелеріне негізделген білім картасы және келесі қадамдар.")}>
+ {loading?<p role="status">{tr("Жүктелуде...")}</p>:error?<div role="alert">{error} <button onClick={()=>window.location.reload()}>{tr("Қайталау")}</button></div>:<>
+ <label>Пән: <select value={selected} onChange={e=>setSelected(e.target.value)}><option value="all">{tr("Барлық пәндер")}</option>{courses.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label>
+ <section className="stat-grid" style={{marginTop:16}}>{[[tr("Тақырыптар"),topics.length],[tr("Бағаланған"),assessed.length],[tr("Қайталау қажет"),assessed.filter(t=>t.masteryScore<50).length],[tr("Орташа меңгеру"),assessed.length?Math.round(assessed.reduce((s,t)=>s+t.masteryScore,0)/assessed.length)+'%':'—']].map(([label,value])=><div className="stat-card" key={label}><div><small>{label}</small><strong>{value}</strong></div></div>)}</section>
+ <section className="card" style={{marginTop:16}}><h2>{tr("Knowledge Map")}</h2>{!topics.length&&<p>{tr("Тақырыптар әлі жоқ.")}</p>}<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,220px),1fr))',gap:12}}>{topics.map(t=><article key={t.id} style={{padding:16,border:'1px solid #dbe4e8',borderRadius:12}}><small>{t.courseTitle}</small><h3>{t.title}</h3><p>{status(t)} · {t.status==='NOT_STARTED'?'—':t.masteryScore+'%'}</p><progress aria-label={t.title} max="100" value={t.status==='NOT_STARTED'?0:t.masteryScore} style={{width:'100%'}}/><p><Link to={'/courses/'+t.courseId}>{tr("Материал")}</Link></p></article>)}</div></section>
+ <section className="card" style={{marginTop:16}}><h2>{tr("Ұсынылатын оқу реті")}</h2><p>{tr("Алдымен әлсіз тақырыптар, кейін тексерілмеген тақырыптар және жаттығулар.")}</p><ol>{plan.map(t=><li key={t.id} style={{marginBottom:16}}><strong>{t.title}</strong> — {status(t)} <small>({t.difficulty})</small><div><Link to={'/courses/'+t.courseId}>{tr("Оқу")}</Link>{' · '}<Link to={t.status==='NOT_STARTED'?'/diagnostic/'+t.courseId:'/quiz/'+t.id}>{t.status==='NOT_STARTED'?tr("Диагностика"):tr("Тест")}</Link></div></li>)}</ol></section>
  </>}
  </Page>
 }
