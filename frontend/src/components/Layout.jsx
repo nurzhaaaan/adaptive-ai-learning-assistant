@@ -42,6 +42,8 @@ import {
   useAuth
 } from '../state/AuthContext';
 
+import { useLanguage } from '../state/language';
+
 const studentNav = [
   ['/', Home, 'Басты бет'],
   ['/study-plan', BookMarked, 'Оқу жоспары'],
@@ -94,13 +96,7 @@ export default function Layout() {
     setQuery
   ] = useState('');
 
-  const [
-    lang,
-    setLang
-  ] = useState(
-    localStorage.getItem('uiLang') ||
-    'KZ'
-  );
+  const {lang,setLanguage,t}=useLanguage();
 
   const isAdmin =
     user?.role === 'ADMIN';
@@ -116,17 +112,17 @@ export default function Layout() {
         ...primaryNav.map(
           ([path, , label]) => ({
             path,
-            label,
+            label: t(label),
             type:
               isAdmin
                 ? 'Admin'
-                : 'Бөлім'
+                : t("Бөлім")
           })
         ),
         {
           path: '/courses/1',
           label: 'Java Programming',
-          type: 'Пән'
+          type: t("Пән")
         },
         {
           path: '/ai',
@@ -136,10 +132,10 @@ export default function Layout() {
         {
           path: '/analytics',
           label: 'Weak topics & mastery',
-          type: 'Аналитика'
+          type: t("Аналитика")
         }
       ],
-      [primaryNav, isAdmin]
+      [primaryNav, isAdmin, lang]
     );
 
   const filtered =
@@ -154,14 +150,7 @@ export default function Layout() {
       )
       .slice(0, 8);
 
-  function setLanguage(value) {
-    setLang(value);
 
-    localStorage.setItem(
-      'uiLang',
-      value
-    );
-  }
 
   return (
     <div className="portal-shell">
@@ -212,7 +201,7 @@ export default function Layout() {
                 <Icon size={20} />
 
                 <span>
-                  {label}
+                  {t(label)}
                 </span>
 
                 {
@@ -236,13 +225,13 @@ export default function Layout() {
 
           <NavLink to="/profile">
             <UserRound size={20} />
-            Жеке кабинет
+            {t("Жеке кабинет")}
           </NavLink>
 
           {!isAdmin && (
             <NavLink to="/messages">
               <MessageSquareText size={20} />
-              Хабарламалар
+              {t("Хабарламалар")}
               <b className="nav-badge">
                 2
               </b>
@@ -251,12 +240,12 @@ export default function Layout() {
 
           <NavLink to="/settings">
             <Settings size={20} />
-            Параметрлер
+            {t("Параметрлер")}
           </NavLink>
 
           <NavLink to="/support">
             <Headphones size={20} />
-            Қолдау қызметі
+            {t("Қолдау қызметі")}
           </NavLink>
 
         </div>
@@ -279,8 +268,8 @@ export default function Layout() {
             <span>
               {
                 isAdmin
-                  ? 'Студент, пән, аналитика іздеу...'
-                  : 'Іздеу (пән, тапсырма, материал...)'
+                  ? t("Студент, пән, аналитика іздеу...")
+                  : t("Іздеу (пән, тапсырма, материал...)")
               }
             </span>
 
@@ -306,7 +295,7 @@ export default function Layout() {
                 <div className="dropdown notifications">
 
                   <h4>
-                    Хабарландырулар
+                    {t("Хабарландырулар")}
                   </h4>
 
                   {isAdmin ? (
@@ -316,7 +305,7 @@ export default function Layout() {
                           Admin Panel
                         </strong>
                         <small>
-                          Жүйе қалыпты жұмыс істеуде
+                          {t("Жүйе қалыпты жұмыс істеуде")}
                         </small>
                       </button>
 
@@ -329,7 +318,7 @@ export default function Layout() {
                           Students
                         </strong>
                         <small>
-                          Қолданушылар статистикасын қарау
+                          {t("Қолданушылар статистикасын қарау")}
                         </small>
                       </button>
                     </>
@@ -344,7 +333,7 @@ export default function Layout() {
                           Java Quiz
                         </strong>
                         <small>
-                          Ертең 23:59 дейін
+                          {t("Ертең 23:59 дейін")}
                         </small>
                       </button>
 
@@ -354,10 +343,10 @@ export default function Layout() {
                         }
                       >
                         <strong>
-                          Жаңа хабарлама
+                          {t("Жаңа хабарлама")}
                         </strong>
                         <small>
-                          Оқытушы материал жіберді
+                          {t("Оқытушы материал жіберді")}
                         </small>
                       </button>
 
@@ -370,7 +359,7 @@ export default function Layout() {
                           AI Recommendation
                         </strong>
                         <small>
-                          OOP тақырыбын қайталау ұсынылды
+                          {t("OOP тақырыбын қайталау ұсынылды")}
                         </small>
                       </button>
                     </>
@@ -424,8 +413,8 @@ export default function Layout() {
                   <small>
                     {
                       isAdmin
-                        ? 'Администратор'
-                        : 'Студент'
+                        ? t("Администратор")
+                        : t("Студент")
                     }
                   </small>
                 </span>
@@ -443,7 +432,7 @@ export default function Layout() {
                     }
                   >
                     <UserRound size={17} />
-                    Жеке кабинет
+                    {t("Жеке кабинет")}
                   </button>
 
                   <button
@@ -452,7 +441,7 @@ export default function Layout() {
                     }
                   >
                     <Settings size={17} />
-                    Параметрлер
+                    {t("Параметрлер")}
                   </button>
 
                   <button
@@ -462,7 +451,7 @@ export default function Layout() {
                     }}
                   >
                     <LogOut size={17} />
-                    Шығу
+                    {t("Шығу")}
                   </button>
 
                 </div>
@@ -489,7 +478,7 @@ export default function Layout() {
           </span>
 
           <span>
-            Құпиялық саясаты · Байланыс
+            {t("Құпиялық саясаты · Байланыс")}
           </span>
 
         </footer>
@@ -524,7 +513,7 @@ export default function Layout() {
                       e.target.value
                     )
                 }
-                placeholder="Не іздейсіз?"
+                placeholder={t("Не іздейсіз?")}
               />
 
               <button
@@ -573,7 +562,7 @@ export default function Layout() {
 
               {!filtered.length && (
                 <p>
-                  Нәтиже табылмады.
+                  {t("Нәтиже табылмады.")}
                 </p>
               )}
 
