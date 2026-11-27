@@ -36,7 +36,7 @@ public class SmartOnboardingController {
    var res=http.send(req,HttpResponse.BodyHandlers.ofString());
    if(res.statusCode()!=200)throw new IllegalStateException();
    String raw=mapper.readTree(res.body()).path("choices").path(0).path("message").path("content").asText().trim();
-   if(raw.startsWith("```"))raw=raw.replaceFirst("^\x60\x60\x60(?:json)?\\s*","").replaceFirst("\\s*\x60\x60\x60$","");
+   if(raw.startsWith("```")){int first=raw.indexOf('\n');int last=raw.lastIndexOf("```");if(first>=0&&last>first)raw=raw.substring(first+1,last).trim();}
    JsonNode arr=mapper.readTree(raw);
    if(!arr.isArray())throw new IllegalStateException();
    List<Subject> out=new ArrayList<>();
