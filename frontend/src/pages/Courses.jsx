@@ -64,7 +64,7 @@ export default function Courses() {
             {t('Courses')}
           </span>
 
-          <h1>{t("My Learning Library")}</h1>
+          <h1>{t("My Learning Library")}</h1><Link to="/profile" className="secondary inline">{t('Profile')}</Link>
 
           <p>
             {t("Open a course, study a topic, then take the adaptive quiz.")}
