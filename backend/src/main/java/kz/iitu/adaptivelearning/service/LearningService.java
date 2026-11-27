@@ -10,12 +10,13 @@ import java.util.*;
 @Service
 @Transactional
 public class LearningService {
-    private final CourseRepository courses; private final TopicRepository topics; private final TopicProgressRepository progress; private final CurrentUserService current;
-    public LearningService(CourseRepository courses, TopicRepository topics, TopicProgressRepository progress, CurrentUserService current) { this.courses=courses; this.topics=topics; this.progress=progress; this.current=current; }
+    private final AcademicProfileRepository profiles; private final CourseRepository courses; private final TopicRepository topics; private final TopicProgressRepository progress; private final CurrentUserService current;
+    public LearningService(CourseRepository courses, TopicRepository topics, TopicProgressRepository progress, CurrentUserService current, AcademicProfileRepository profiles) { this.profiles=profiles; this.courses=courses; this.topics=topics; this.progress=progress; this.current=current; }
 
     public List<CourseSummary> listCourses() {
         User user=current.requireUser();
-        return courses.findAll().stream().map(c -> new CourseSummary(c.getId(),c.getCode(),c.getTitle(),c.getDescription(),courseProgress(user,c.getId()),topics.findByCourseIdOrderByOrderNumberAsc(c.getId()).size())).toList();
+        Set<Long> selected=profiles.findById(user.getId()).map(p->Set.copyOf(p.courseIds)).orElse(null);
+        return courses.findAll().stream().filter(c->user.getRole()==Role.ADMIN || selected==null || selected.contains(c.getId())).map(c -> new CourseSummary(c.getId(),c.getCode(),c.getTitle(),c.getDescription(),courseProgress(user,c.getId()),topics.findByCourseIdOrderByOrderNumberAsc(c.getId()).size())).toList();
     }
 
     public CourseDetails getCourse(Long courseId) {
