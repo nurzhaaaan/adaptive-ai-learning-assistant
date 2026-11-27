@@ -40,13 +40,7 @@ export async function api(
     ...(options.headers || {}),
   };
 
-  const response = await fetch(
-    `${API_URL}${path}`,
-    {
-      ...options,
-      headers,
-    }
-  );
+  const response = await resilientFetch(`${API_URL}${path}`, { ...options, headers });
 
   let data = null;
 
@@ -124,3 +118,23 @@ export const apiRequest = api;
  * Current backend API URL.
  */
 export { API_URL };
+
+// Retry only safe reads; never replay a quiz submission or registration.
+async function resilientFetch(url, options) {
+  const safe = ['GET','HEAD'].includes((options.method || 'GET').toUpperCase());
+  for (let i=0; i<(safe?3:1); i++) {
+    const controller = new AbortController();
+    const timer=setTimeout(()=>controller.abort(), 45000);
+    const abort=()=>controller.abort();
+    if(options.signal?.aborted) abort();
+    options.signal?.addEventListener('abort',abort,{once:true});
+    try {
+      const response=await fetch(url,{...options,signal:controller.signal});
+      if(safe && i<2 && [502,503,504,429].includes(response.status)){await response.body?.cancel();} else return response;
+    } catch(e) {
+      if(options.signal?.aborted) throw e;
+      if(!safe || i===2) throw new Error('Server unavailable or starting up. Please retry.');
+    } finally {clearTimeout(timer);options.signal?.removeEventListener('abort',abort);}
+    await new Promise(r=>setTimeout(r,2000*(i+1)));
+  }
+}
