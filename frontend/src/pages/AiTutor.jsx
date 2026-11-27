@@ -1,3 +1,4 @@
+import {useLanguage} from '../state/language';
 import React, {
   useEffect,
   useMemo,
@@ -18,12 +19,11 @@ import {
 } from "lucide-react";
 
 export default function AiTutor() {
+  const {t,lang}=useLanguage();
   const [topics, setTopics] = useState([]);
   const [topicId, setTopicId] = useState("");
 
-  const [message, setMessage] = useState(
-    "What should I study next?"
-  );
+  const [message, setMessage] = useState("");
 
   const [chat, setChat] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -58,11 +58,7 @@ export default function AiTutor() {
 
       setTopics(allTopics);
 
-      if (allTopics.length > 0) {
-        setTopicId(
-          String(allTopics[0].id)
-        );
-      }
+      setTopicId("");
     } catch (err) {
       setError(
         err?.message ||
@@ -131,6 +127,7 @@ export default function AiTutor() {
 
           body: JSON.stringify({
             message: text,
+            language: lang,
 
             topicId: topicId
               ? Number(topicId)
@@ -144,9 +141,7 @@ export default function AiTutor() {
           role: "ai",
           text: response.reply,
 
-          meta: `${response.studentLevel} · ${formatSource(
-            response.source
-          )}`,
+          meta: `${t(response.studentLevel)} · ${t(formatSource(response.source))}`,
 
           context:
             response.contextSummary,
@@ -189,7 +184,7 @@ export default function AiTutor() {
           </span>
 
           <h1>
-            Personalized Learning Assistant
+            {t("Personalized Learning Assistant")}
           </h1>
 
           <p>
@@ -239,7 +234,7 @@ export default function AiTutor() {
                       )
                     }
                   >
-                    Explain simply
+                    {t("Explain simply")}
                   </button>
 
                   <button
@@ -250,7 +245,7 @@ export default function AiTutor() {
                       )
                     }
                   >
-                    What next?
+                    {t("What next?")}
                   </button>
 
                   <button
@@ -261,7 +256,7 @@ export default function AiTutor() {
                       )
                     }
                   >
-                    Practice task
+                    {t("Practice task")}
                   </button>
                 </div>
               </div>
@@ -310,7 +305,7 @@ export default function AiTutor() {
                   event.target.value
                 )
               }
-              placeholder="Ask about the selected topic..."
+              placeholder={t("Ask a question...")}
             />
 
             <button
@@ -323,8 +318,8 @@ export default function AiTutor() {
               <Send size={18} />
 
               {busy
-                ? "Thinking..."
-                : "Send"}
+                ? t("Thinking...")
+                : t("Send")}
             </button>
           </form>
         </section>
@@ -339,13 +334,13 @@ export default function AiTutor() {
               </span>
 
               <h2>
-                Learning Context
+                {t("Learning Context")}
               </h2>
             </div>
           </div>
 
           <label className="ai-topic-select">
-            Current topic
+            {t("Current topic")}
 
             <select
               value={topicId}
@@ -355,6 +350,7 @@ export default function AiTutor() {
                 )
               }
             >
+              <option value="">{t("General learning advice")}</option>
               {topics.map((topic) => (
                 <option
                   key={topic.id}
@@ -372,21 +368,21 @@ export default function AiTutor() {
               <div className="ai-profile-grid">
                 <ProfileItem
                   icon={<Brain size={18} />}
-                  label="Current level"
-                  value={selectedLevel}
+                  label={t("Current level")}
+                  value={selectedTopic.status === "NOT_STARTED" ? t("Not assessed") : t(selectedLevel)}
                 />
 
                 <ProfileItem
                   icon={<Target size={18} />}
-                  label="Mastery"
-                  value={selectedTopic.status === "NOT_STARTED" ? "Not assessed" : `${selectedTopic.masteryScore || 0}%`}
+                  label={t("Mastery")}
+                  value={selectedTopic.status === "NOT_STARTED" ? t("Not assessed") : `${selectedTopic.masteryScore || 0}%`}
                 />
 
                 <ProfileItem
                   icon={<Gauge size={18} />}
-                  label="Difficulty"
+                  label={t("Difficulty")}
                   value={
-                    selectedDifficulty
+                    t(selectedDifficulty)
                   }
                 />
 
@@ -394,7 +390,7 @@ export default function AiTutor() {
                   icon={
                     <BookOpen size={18} />
                   }
-                  label="Status"
+                  label={t("Status")}
                   value={
                     formatStatus(
                       selectedTopic.status
@@ -405,7 +401,7 @@ export default function AiTutor() {
 
               <div className="ai-context-topic">
                 <span>
-                  Selected topic
+                  {t("Selected topic")}
                 </span>
 
                 <strong>
@@ -423,13 +419,13 @@ export default function AiTutor() {
             <div className="ai-weak-heading">
               <AlertTriangle size={18} />
               <strong>
-                Weak topics
+                {t("Weak topics")}
               </strong>
             </div>
 
             {weakTopics.length === 0 ? (
               <p className="ai-no-weak">
-                No topics below 50% mastery.
+                {t("No assessed topics below 50% mastery.")}
               </p>
             ) : (
               <div className="ai-weak-list">
@@ -536,7 +532,7 @@ function formatSource(source) {
     source ===
     "built-in-adaptive-tutor"
   ) {
-    return "Rule-based tutor (offline fallback)";
+    return "Rule-based helper (AI unavailable)";
   }
 
   return source || "AI Tutor";
