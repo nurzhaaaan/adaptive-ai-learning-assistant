@@ -12,6 +12,7 @@ import Layout from './components/Layout';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AcademicProfile from './pages/AcademicProfile';
 
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -252,7 +253,7 @@ export default function App() {
 
         <Route
           path="profile"
-          element={<Profile/>}
+          element={<AcademicProfile/>}
         />
 
         <Route
