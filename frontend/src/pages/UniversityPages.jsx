@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { api } from '../api';
 import { Link } from 'react-router-dom';
 import { CalendarDays, CheckCircle2, Clock3, Download, FileText, Search, Send, Trash2, Upload, UserRound, Save, MessageSquareText } from 'lucide-react';
 
@@ -8,7 +9,24 @@ const assignmentsSeed=[
  {id:3,course:'HCI',title:'Usability Analysis',deadline:'14.09.2026 23:59',status:'SUBMITTED',score:88},
 ];
 
-export function StudyPlan(){return <Page title="Оқу жоспары" subtitle="Семестр бойынша пәндер, кредиттер және оқу прогресі."><Table headers={['Пән','Код','Кредит','Статус']} rows={[[<Link to="/courses/1">Java Programming</Link>,'JAVA101','5','Оқылуда'],['Database Systems','DB202','5','Оқылуда'],['Human-Computer Interaction','HCI301','4','Оқылуда'],['Probability and Statistics','STAT210','5','Оқылуда'],['English','ENG201','3','Оқылуда']]}/></Page>}
+export function StudyPlan(){
+ const [courses,setCourses]=useState([]),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+ const [selected,setSelected]=useState('all');
+ useEffect(()=>{let active=true;api('/courses').then(list=>Promise.all(list.map(c=>api('/courses/'+c.id)))).then(data=>{if(active)setCourses(data)}).catch(e=>{if(active)setError(e.message)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
+ const topics=courses.filter(c=>selected==='all'||String(c.id)===selected).flatMap(c=>c.topics.map(t=>({...t,courseId:c.id,courseTitle:c.title})));
+ const rank=t=>t.status==='NOT_STARTED'?1:t.masteryScore<50?0:t.masteryScore<80?2:3;
+ const plan=[...topics].sort((a,b)=>rank(a)-rank(b)||a.masteryScore-b.masteryScore||a.orderNumber-b.orderNumber);
+ const assessed=topics.filter(t=>t.status!=='NOT_STARTED');
+ const status=t=>t.status==='NOT_STARTED'?'Тексерілмеген':t.masteryScore<50?'Қайталау қажет':t.masteryScore<80?'Жаттығу қажет':'Меңгерілген';
+ return <Page title="Жеке оқу жоспары" subtitle="Нақты тест нәтижелеріне негізделген білім картасы және келесі қадамдар.">
+ {loading?<p role="status">Жүктелуде...</p>:error?<div role="alert">{error} <button onClick={()=>window.location.reload()}>Қайталау</button></div>:<>
+ <label>Пән: <select value={selected} onChange={e=>setSelected(e.target.value)}><option value="all">Барлық пәндер</option>{courses.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label>
+ <section className="stat-grid" style={{marginTop:16}}>{[['Тақырыптар',topics.length],['Бағаланған',assessed.length],['Қайталау қажет',assessed.filter(t=>t.masteryScore<50).length],['Орташа меңгеру',assessed.length?Math.round(assessed.reduce((s,t)=>s+t.masteryScore,0)/assessed.length)+'%':'—']].map(([label,value])=><div className="stat-card" key={label}><div><small>{label}</small><strong>{value}</strong></div></div>)}</section>
+ <section className="card" style={{marginTop:16}}><h2>Knowledge Map</h2>{!topics.length&&<p>Тақырыптар әлі жоқ.</p>}<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,220px),1fr))',gap:12}}>{topics.map(t=><article key={t.id} style={{padding:16,border:'1px solid #dbe4e8',borderRadius:12}}><small>{t.courseTitle}</small><h3>{t.title}</h3><p>{status(t)} · {t.status==='NOT_STARTED'?'—':t.masteryScore+'%'}</p><progress aria-label={t.title} max="100" value={t.status==='NOT_STARTED'?0:t.masteryScore} style={{width:'100%'}}/><p><Link to={'/courses/'+t.courseId}>Материал</Link></p></article>)}</div></section>
+ <section className="card" style={{marginTop:16}}><h2>Ұсынылатын оқу реті</h2><p>Алдымен әлсіз тақырыптар, кейін тексерілмеген тақырыптар және жаттығулар.</p><ol>{plan.map(t=><li key={t.id} style={{marginBottom:16}}><strong>{t.title}</strong> — {status(t)} <small>({t.difficulty})</small><div><Link to={'/courses/'+t.courseId}>Оқу</Link>{' · '}<Link to={t.status==='NOT_STARTED'?'/diagnostic/'+t.courseId:'/quiz/'+t.id}>{t.status==='NOT_STARTED'?'Диагностика':'Тест'}</Link></div></li>)}</ol></section>
+ </>}
+ </Page>
+}
 
 export function Schedule(){const [day,setDay]=useState('Дүйсенбі'); const schedule={Дүйсенбі:[['10:00','HCI','304','Сейтқұлов А.Е.'],['12:00','Database Systems','318','Ибрайимова Г.К.'],['14:00','Probability and Statistics','201','Тулебаев М.С.']],Сейсенбі:[['09:00','Java Programming','220','A. Lecturer'],['13:00','English','401','Johnson P.']],Сәрсенбі:[['10:00','Database Lab','Lab 2','Ибрайимова Г.К.']]}; return <Page title="Оқу кестесі" subtitle="Апталық сабақ кестесі және аудиториялар."><div className="segmented">{Object.keys(schedule).map(d=><button className={day===d?'active':''} onClick={()=>setDay(d)} key={d}>{d}</button>)}</div><div className="list-card">{(schedule[day]||[]).map((x,i)=><div className="schedule-line" key={i}><time>{x[0]}</time><CalendarDays/><div><strong>{x[1]}</strong><small>Аудитория: {x[2]} · {x[3]}</small></div></div>)}</div></Page>}
 
