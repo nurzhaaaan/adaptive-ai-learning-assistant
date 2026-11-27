@@ -85,7 +85,7 @@ export default function AiTutor() {
     return topics
       .filter(
         (topic) =>
-          Number(topic.masteryScore || 0) < 50
+          topic.status !== 'NOT_STARTED' && Number(topic.masteryScore || 0) < 50
       )
       .sort(
         (a, b) =>
@@ -379,7 +379,7 @@ export default function AiTutor() {
                 <ProfileItem
                   icon={<Target size={18} />}
                   label="Mastery"
-                  value={`${selectedTopic.masteryScore || 0}%`}
+                  value={selectedTopic.status === "NOT_STARTED" ? "Not assessed" : `${selectedTopic.masteryScore || 0}%`}
                 />
 
                 <ProfileItem
@@ -536,7 +536,7 @@ function formatSource(source) {
     source ===
     "built-in-adaptive-tutor"
   ) {
-    return "Adaptive Engine";
+    return "Rule-based tutor (offline fallback)";
   }
 
   return source || "AI Tutor";
