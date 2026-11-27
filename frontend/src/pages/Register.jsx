@@ -91,7 +91,7 @@ export default function Register() {
         password
       );
 
-      navigate('/');
+      navigate('/profile');
 
     } catch (err) {
 
