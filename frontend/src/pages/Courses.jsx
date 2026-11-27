@@ -1,3 +1,4 @@
+import {useLanguage} from '../state/language';
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +12,7 @@ import { api } from "../api";
 import ProgressBar from "../components/ProgressBar";
 
 export default function Courses() {
+ const {t}=useLanguage();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -49,7 +51,7 @@ export default function Courses() {
   if (loading) {
     return (
       <div className="loader">
-        Loading your courses...
+        {t("Loading your courses...")}
       </div>
     );
   }
@@ -59,14 +61,13 @@ export default function Courses() {
       <header className="page-head">
         <div>
           <span className="eyebrow">
-            COURSES
+            {t('Courses')}
           </span>
 
-          <h1>My Learning Library</h1>
+          <h1>{t("My Learning Library")}</h1>
 
           <p>
-            Open a course, study a topic, then take
-            the adaptive quiz.
+            {t("Open a course, study a topic, then take the adaptive quiz.")}
           </p>
         </div>
       </header>
@@ -89,7 +90,7 @@ export default function Courses() {
 
           <div style={{ flex: 1 }}>
             <strong>
-              Courses could not be loaded
+              {t("Courses could not be loaded")}
             </strong>
 
             <div style={{ marginTop: "4px" }}>
@@ -103,7 +104,7 @@ export default function Courses() {
             onClick={loadCourses}
           >
             <RefreshCw size={17} />
-            Retry
+            {t("Retry")}
           </button>
         </div>
       )}
@@ -125,11 +126,10 @@ export default function Courses() {
             }}
           />
 
-          <h2>No courses found</h2>
+          <h2>{t("No courses found")}</h2>
 
           <p>
-            There are currently no courses
-            available for this student.
+            {t("There are currently no courses available for this student.")}
           </p>
         </div>
       )}
@@ -152,7 +152,7 @@ export default function Courses() {
 
             <div className="course-meta">
               <span>
-                {course.topicCount} topics
+                {course.topicCount} {t('Topics')}
               </span>
 
               <strong>
@@ -165,7 +165,7 @@ export default function Courses() {
             />
 
             <div className="card-link">
-              Continue learning
+              {t("Continue learning")}
               <ArrowRight size={17} />
             </div>
           </Link>
